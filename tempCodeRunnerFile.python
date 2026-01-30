@@ -1,0 +1,100 @@
+from deepface import DeepFace
+import matplotlib.pyplot as plt
+import cv2
+import numpy as np
+import pandas as pd
+backends = ["opencv", "ssd", "dlib", "mtcnn", "retinaface", "mediapipe"]
+
+img_path = "C:/Devang/projects/face recognition/image2.jpg"
+
+plt.figure(figsize=(15, 8))
+
+for i, backend in enumerate(backends):
+    try:
+        # Detect face
+        face = DeepFace.detectFace(
+            img_path=img_path,
+            target_size=(750, 750),
+            detector_backend=backend
+        )
+
+        # Remove batch dimension if present
+        if face.ndim == 4:
+            face = face[0]
+
+        # Convert float [0,1] → uint8
+        face = (face * 255).astype(np.uint8)
+
+        # Show in subplot
+        plt.subplot(2, 3, i + 1)
+        plt.imshow(face)
+        plt.title(backend)
+        plt.axis('off')
+
+    except Exception as e:
+        plt.subplot(2, 3, i + 1)
+        plt.text(0.5, 0.5, f"Error\n{backend}", ha='center', va='center', fontsize=10)
+        plt.axis('off')
+
+plt.tight_layout()
+plt.show()
+models = ["VGG-Face", "Facenet", "Facenet512", "OpenFace", "DeepFace", "DeepId", "ArcFace", "Dlib", "SFace"]
+
+img1 = "C:/Devang/projects/face recognition/image2.jpg"
+img2 = "C:/Devang/projects/face recognition/image1.jpg"
+
+for model in models:
+    try:
+        # Run verification
+        result = DeepFace.verify(
+            img1_path=img1,
+            img2_path=img2,
+            model_name=model,
+            detector_backend="retinaface"
+        )
+
+        # Plot images
+        fig, axs = plt.subplots(1, 2, figsize=(10, 5))
+        axs[0].imshow(plt.imread(img1))
+        axs[0].axis('off')
+        axs[0].set_title("Image 1")
+
+        axs[1].imshow(plt.imread(img2))
+        axs[1].axis('off')
+        axs[1].set_title("Image 2")
+
+        # Title with verification result
+        fig.suptitle(f"{model} → Verified: {result['verified']} | Distance: {result['distance']:.4f}", fontsize=14)
+        plt.show()
+
+    except Exception as e:
+        print(f"Model: {model} | Error: {e}")
+        
+        
+from deepface import DeepFace
+
+df = DeepFace.find(
+    img_path="C:/Devang/projects/face recognition/image1.jpg",
+    db_path="C:/Devang/projects/face recognition/emotion_faces",
+    detector_backend="retinaface"  # you can try other backends
+)
+
+print(df)
+
+result = DeepFace.analyze(
+    img_path="C:/Devang/projects/face recognition/image4.jpg",
+    actions=["emotion"]
+)[0]  # get first result
+
+# Create DataFrame and plot
+pd.DataFrame(result["emotion"], index=[0]).T.plot(kind="bar", legend=False)
+plt.ylabel("Probability")
+plt.title("Emotion Analysis")
+plt.show()
+
+
+        
+
+
+
+
